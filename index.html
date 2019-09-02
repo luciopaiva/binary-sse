@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Base128 SSE example</title>
+
+    <style>
+        body {
+            font-family: monospace;
+            font-size: 18px;
+        }
+        .container {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: auto auto;
+            grid-template-rows: auto auto;
+            grid-gap: 20px;
+            justify-content: space-evenly;
+        }
+        .container * {
+            display: flex;
+            justify-content: center;
+        }
+        .original {
+            grid-column: 1 / 3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="original">Original image size:&nbsp;<div id="original-size"></div></div>
+    <img id="base64-image" src="" alt="">
+    <img id="base128-image" src="" alt="">
+    <div>Base 64</div>
+    <div>Base 128</div>
+    <div id="base64-size"></div>
+    <div id="base128-size"></div>
+</div>
+
+<script type="module">
+    import { sseToBinaryData } from "./sse-codec";
+    import { decode } from "./base128";
+    import debug from "./debug";
+
+    const base64ImageElement = document.getElementById("base64-image");
+    const base128ImageElement = document.getElementById("base128-image");
+
+    const originalSizeElement = document.getElementById("original-size");
+    const base64SizeElement = document.getElementById("base64-size");
+    const base128SizeElement = document.getElementById("base128-size");
+
+    const encoder = new TextEncoder();
+
+    /**
+     * @param {MessageEvent} event
+     */
+    function onMetaMessageEvent(event) {
+        const [originalSize, base64Size, base128Size] = event.data.split("|").map(str => parseInt(str));
+        originalSizeElement.innerHTML = `${(originalSize / 1024).toFixed(1)} kB`;
+        const base64Perc = (((base64Size / originalSize) - 1) * 100).toFixed(1);
+        base64SizeElement.innerHTML = `${(base64Size / 1024).toFixed(1)} kB <br> +${base64Perc}%`;
+        const base128Perc = (((base128Size / originalSize) - 1) * 100).toFixed(1);
+        base128SizeElement.innerHTML = `${(base128Size / 1024).toFixed(1)} kB <br> +${base128Perc}%`;
+    }
+
+    /**
+     * @param {MessageEvent} event
+     */
+    function onBase128MessageEvent(event) {
+        const view = encoder.encode(event.data);
+        const unescaped = sseToBinaryData(view);
+        const unbased = decode(unescaped);
+        const base64 = btoa(String.fromCharCode.apply(null, unbased));
+        base128ImageElement.src = `data:;base64,${base64}`;
+    }
+
+    /**
+     * @param {MessageEvent} event
+     */
+    function onBase64MessageEvent(event) {
+        const base64 = event.data;
+        base64ImageElement.src = `data:;base64,${base64}`;
+    }
+
+    const sse = new EventSource("/images");
+    sse.addEventListener("meta", onMetaMessageEvent);
+    sse.addEventListener("base128", onBase128MessageEvent);
+    sse.addEventListener("base64", onBase64MessageEvent);
+</script>
+
+</body>
+</html>
