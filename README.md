@@ -39,3 +39,7 @@ I'm using experimental modules so I can reuse server side code on the browser.
 ## Note about Javascript modules
 
 This project is using modern Javascript and the same modules are being used both on the client and on the server thanks to Node's `--experimental-modules` flag.
+
+## Related
+
+This article [here](https://haacked.com/archive/2012/01/30/hazards-of-converting-binary-data-to-a-string.aspx/) is also relevant to the discussion, although it encourages you to use base 64 (which I disagree).
