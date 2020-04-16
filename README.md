@@ -1,5 +1,5 @@
 
-# Sending binary data via server-side events
+# Sending binary data via server-sent events
 
 This is a proof of concept on how to send binary data via [SSE](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events). SSE was designed to carry only UTF-8 text, so the usual way would be to encode your binary data to base64 before sending. The problem is that the final message will be much bigger than desired. Every 8 bits in the output are encoding 6 bits in the input. That's why it's called base 64, by the way; 6 bits encode 64 different combinations. This 8/6 ratio represents an increase of about 33% in the final size.
 
